@@ -1,11 +1,12 @@
 var w = 1000;
+var ww;
 var k = 0.3;
 var diag= 0.5;
 var sz = 600;
 var c;
 function setup() {
-
-    createCanvas(w,w);
+    ww=w/10;
+    createCanvas(w,w,WEBGL);
     c = cloud();
 }
 
@@ -66,22 +67,26 @@ function twoD(p) {
     return [x,y];
 }
 function drawPoint(p) {
-    var x = w/2 + w * k * (p[0]+diag*p[1]);
-    var y = w/2 + w * k * (p[2]+diag*p[1]);
-    ellipse(x, y ,4,4);
+    push();
+    translate((1+p[0])*ww,(1+p[1])*ww,(1+p[2])*ww);
+    normalMaterial();
+    sphere(5);
+    pop();
+
 }
 
 function drawLine(i,j) {
-    var p = twoD(c[i]);
-    var q = twoD(c[j]);
-    line(p[0], p[1], q[0], q[1]);
+    var p = c[i];
+    var q = c[j];
+    line((1+p[0])*ww, (1+p[1])*ww, (1+p[2])*ww, (1+q[0])*ww, (1+q[1])*ww, (1+q[2])*ww);
 }
 
 function draw() {
+    orbitControl();
     for(var i = 0; i<sz; i++){
 	stroke('red');
 	drawPoint(c[i]);
-	stroke('black');
+	stroke('red');
 	var cl = closest(i,i);
 	drawLine(cl,i);
 	cl = closest(i,cl);
