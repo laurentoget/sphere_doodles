@@ -1,4 +1,5 @@
 function setup() {
+    a = 30;
     ww=w/a;
     p = new Polyomino();
     p.load();
@@ -6,28 +7,30 @@ function setup() {
     running = true;
 }
 
+
+function mousePressed() {
+    var x=Math.floor(Math.floor(mouseX/a));
+    var y=Math.floor(Math.floor(mouseY/a));
+    p.addCell(new Cell(x,y,'red'));
+}
+
 function keyPressed(){
-    if(key == ' ')
-	running = !(running);
-    if(key == 'D') {
-	p.vx +=0.1;
+
+    if(keyCode == 189) {
+        a-=1;
     }
-    if(key == 'A') {
-	p.vx -=0.1;
-    }
-    if(key == 'X') {
-	p.vy +=0.1;
-    }
-    if(key == 'W') {
-	p.vy -=0.1;
+    if(keyCode == 187) {
+        a+=1;
     }
     if(key == 'C') {
         p.saveToStorage('p');
-        window.location = "index2.html";
+        window.location = "index.html";
     }
 
     console.log(key);
+    console.log(keyCode);
 }
+
 function draw(){
     fill(256,256,256,transparency);
     rect(0,0,w,w);
