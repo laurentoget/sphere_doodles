@@ -1,17 +1,31 @@
 function setup() {
-    a = 30;
     ww=w/a;
-    p = new Polyomino();
-    p.load();
+    current = 1;
+    loadCurrent();
     createCanvas(w,w);
     running = true;
 }
 
+function loadCurrent() {
+    p = new Polyomino();
+    p.load(current);
+    var corners = p.corners();
+    var dx = corners[2]-corners[0];
+    var dy = corners[3]-corners[1];
+
+    if(dx>dy) {
+	a = Math.floor(w/(dx+5))
+    } else {
+	a = Math.floor(w/(dy+5))
+    }
+    p.x = (2-corners[0])*a;
+    p.y = (2-corners[1])*a;
+}
 
 function mousePressed() {
-    var x=Math.floor(Math.floor(mouseX/a));
-    var y=Math.floor(Math.floor(mouseY/a));
-    p.addCell(new Cell(x,y,'red'));
+    var x=Math.floor(Math.floor((mouseX-p.x)/a));
+    var y=Math.floor(Math.floor((mouseY-p.y)/a));
+    p.addCell(new Cell(x,y,colors[current]));
 }
 
 function keyPressed(){
@@ -23,8 +37,15 @@ function keyPressed(){
         a+=1;
     }
     if(key == 'C') {
-        p.saveToStorage('p');
+        p.saveToStorage('p'+current);
         window.location = "index.html";
+    }
+    if(key == 'N') {
+	p.saveToStorage('p'+current);
+        current +=1;
+	if(current >=n)
+	    current =0;
+	loadCurrent();
     }
 
     console.log(key);
@@ -32,9 +53,6 @@ function keyPressed(){
 }
 
 function draw(){
-    fill(256,256,256,transparency);
-    rect(0,0,w,w);
+    drawContext();
     p.draw();
-    if(running)
-	p.translate(p.vx,p.vy);
 }
