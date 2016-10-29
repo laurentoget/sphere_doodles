@@ -1,0 +1,38 @@
+var x,y,dx,dy;
+var w = 600;
+var a = 40;
+var puck;
+
+var last, gap;
+function setup() {
+    x = 0;
+    y = 0;
+    dx = 1;
+    dy = 1;
+    puck = loadImage("puck.png");
+    createCanvas(w,w);
+    var d = new Date()
+    last = d.getTime();
+    gap = 500;
+}
+
+function move(){
+    var d = new Date()
+    if(d.getTime()-last < gap)
+	return;
+    last = d.getTime();
+    x += dx*a;
+    x = x%w;
+    if(x<0)
+	x += w;
+    y += dy*a;
+    y = y%w;
+    if(y<0)
+	y += w;
+}
+function draw(){
+    fill('white');
+    rect(0,0,w-1,w-1)
+    image(puck,x,y);
+    move();
+}
