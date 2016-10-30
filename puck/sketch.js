@@ -8,8 +8,41 @@ var elem = [];
 var pucks = [];
 var glyphs = [];
 var last, gap;
+var context,oscillator,analyser;
+var notes = [];
+function setNotes() {
+    var current = 110;
+    notes.push(current);
+    var semi = Math.pow(2,1/12);
+    current = current *semi*semi*semi;
+    notes.push(current);
+    current = current*semi*semi;
+    notes.push(current);
+    current = current *semi*semi;
+    notes.push(current);
+    current = current *semi*semi*semi;
+    notes.push(current);
+    current = current *semi*semi*semi;
+    notes.push(current);
+    current = current*semi*semi;
+    notes.push(current);
+    current = current *semi*semi;
+    notes.push(current);
+    current = current *semi*semi*semi;
+    notes.push(current);
+    current = current *semi*semi*semi;
+    notes.push(current);
+    current = current*semi*semi;
+    notes.push(current);
+    current = current *semi*semi;
+    notes.push(current);
+    current = current *semi*semi*semi;
+    notes.push(current);
+}
 function setup() {
-    n = w/a;
+    setNotes()
+    n = Math.floor(w/a);
+    context = new (window.AudioContext || window.webkitAudioContext)();
     for(var i=0; i<n*n; i+= 1)
 	terrain.push(null);
     pucks.push(new Puck());
@@ -24,7 +57,17 @@ function setup() {
     createCanvas(w,w);
     var d = new Date()
     last = d.getTime();
-    gap = 200;
+    gap = 100;
+}
+function play(x,y) {
+    oscillator = context.createOscillator();
+    analyser = context.createAnalyser();    n = w/a;
+    oscillator.connect(analyser);
+    analyser.connect(context.destination);
+    oscillator.frequency.value = notes[x%(notes.length)];
+    oscillator.type = "sine";
+    oscillator.start(0);
+    oscillator.stop(context.currentTime+gap/1000);
 }
 
 function Puck(){
@@ -45,6 +88,7 @@ Puck.prototype.increment = function(elapsed) {
 
 Puck.prototype.move = function(){
     if(terrain[this.x+n*this.y] != null) {
+	play(this.x,this.y);
 	var o = terrain[this.x+n*this.y];
 	if(o['kind'] == 1) {
 	    var yy = this.dx;
@@ -84,6 +128,7 @@ Puck.prototype.draw = function(){
 }
 
 function mousePressed() {
+
     var xx = Math.floor(mouseX/a);
     var yy = Math.floor(mouseY/a);
     var rank = xx + n* yy;
@@ -104,6 +149,7 @@ function mousePressed() {
 	    terrain[rank] = null;
 	}
     }
+    
 }
 
 function keyPressed() {
