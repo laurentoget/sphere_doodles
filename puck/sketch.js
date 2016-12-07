@@ -1,7 +1,7 @@
 var x,y,dx,dy;
 var w = 600;
 var n;
-var a = 40;
+var a = 30;
 var puck;
 var terrain = [];
 var elem = [];
@@ -10,6 +10,7 @@ var glyphs = [];
 var last, gap;
 var context,oscillator,analyser;
 var notes = [];
+var lastkind = 0;
 function setNotes() {
     var current = 110;
     notes.push(current);
@@ -39,6 +40,17 @@ function setNotes() {
     current = current *semi*semi*semi;
     notes.push(current);
 }
+function setNotes2() {
+    var current = 110;
+    notes.push(current);
+    var semi = Math.pow(2,1/12);
+    for(var i=0;i<3;i++) {
+	current = current *semi;
+	notes.push(current);
+	current = current*semi*semi;
+	notes.push(current);
+    }
+}
 function setup() {
     setNotes()
     n = Math.floor(w/a);
@@ -57,11 +69,11 @@ function setup() {
     createCanvas(w,w);
     var d = new Date()
     last = d.getTime();
-    gap = 100;
+    gap = 300;
 }
 function play(x,y) {
     oscillator = context.createOscillator();
-    analyser = context.createAnalyser();    n = w/a;
+    analyser = context.createAnalyser();  
     oscillator.connect(analyser);
     analyser.connect(context.destination);
     oscillator.frequency.value = notes[x%(notes.length)];
@@ -75,8 +87,8 @@ function Puck(){
     this.y = 0;
     this.lastx = 0;
     this.lasty = 0;
-    this.nextx = 0;
-    this.nexty = 0;
+    this.nextx = 1;
+    this.nexty = 1;
     this.dx = 1;
     this.dy = 1;
 }
@@ -87,9 +99,9 @@ Puck.prototype.increment = function(elapsed) {
 }
 
 Puck.prototype.move = function(){
-    if(terrain[this.x+n*this.y] != null) {
-	play(this.x,this.y);
-	var o = terrain[this.x+n*this.y];
+    if(terrain[this.nextx+n*this.nexty] != null) {
+	play(this.nextx,this.nexty);
+	var o = terrain[this.nextx+n*this.nexty];
 	if(o['kind'] == 1) {
 	    var yy = this.dx;
 	    this.dx = -this.dy;
@@ -113,14 +125,29 @@ Puck.prototype.move = function(){
 	}
     }
 
-    this.x += this.dx;
-    this.x = this.x%n;
-    if(this.x<0)
-	this.x += n;
-    this.y += this.dy;
-    this.y = this.y%n;
-    if(this.y<0)
-	this.y += n;
+    this.lastx = this.nextx
+    this.lasty = this.nexty
+    this.nextx += this.dx;
+    this.nexty += this.dy;
+
+    if(this.lastx>n) {
+	this.lastx -=n;
+	this.nextx -=n;
+    }
+    if(this.lastx<0) {
+	this.lastx += n;
+	this.nextx += n;
+    }
+
+    if(this.lasty>n) {
+	this.lasty -=n;
+	this.nexty -=n;
+    }
+    
+    if(this.lasty<0) {
+	this.lasty += n;
+	this.nexty += n;
+    }
 }
 
 Puck.prototype.draw = function(){
@@ -133,13 +160,15 @@ function mousePressed() {
     var yy = Math.floor(mouseY/a);
     var rank = xx + n* yy;
     if(terrain[rank] == null) {
-	terrain[rank] = {"kind":0,"elem":elem.length};
-        elem.push({"kind":0,"x":xx,"y":yy});
+	terrain[rank] = {"kind":lastkind,"elem":elem.length};
+        elem.push({"kind":lastkind,"x":xx,"y":yy});
     } else {
 	if(terrain[rank]['kind']<glyphs.length-1) {
 	    terrain[rank]['kind'] += 1;
+	    lastkind = terrain[rank]['kind']
 	    elem[terrain[rank]['elem']]['kind'] = terrain[rank]['kind'];
 	} else {
+	    lastkind = 0
 	    if(terrain[rank]['elem']<elem.length - 1) {
 		lastelem = elem[elem.length - 1];
 		elem[terrain[rank]['elem']] = lastelem;
@@ -159,13 +188,22 @@ function keyPressed() {
 
 function move() {
     var d = new Date()
-    if(d.getTime()-last < gap)
-	return;
-    for(p of pucks){
-	p.move();
+    var elapsed = d.getTime()-last 
+    if( elapsed< gap){
+	for(p of pucks){
+	    p.increment(elapsed);
+	}
+    } else {
+	console.log("MOVE");
+	for(p of pucks){
+	    p.move();
+	    p.increment(elapsed-gap)
+	}
+	last = d.getTime();
     }
-    last = d.getTime();
+
 }
+
 function draw(){
     fill('white');
     rect(0,0,w-1,w-1)
